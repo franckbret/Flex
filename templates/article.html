@@ -5,6 +5,13 @@
 <meta name="description" content="{{ article.summary|striptags|escape }}" />
 <meta name="keywords" content="{{ article.tags|join(', ')|escape }}">
 
+{% if article.translations -%}
+<link rel="alternate" href="{{ SITEURL }}/{{ article.url }}" hreflang="{{ article.lang }}" />
+{% for a in article.translations %}
+<link rel="alternate" href="{{ SITEURL }}/{{ a.url }}" hreflang="{{ a.lang }}" />
+{% endfor %}
+{% endif %}
+
 {% include "partial/og_article.html" %}
 {% endblock %}
 
@@ -24,8 +31,8 @@
            author=article.author.name,
            category='<a href="%s/%s">%s</a>'|format(SITEURL, article.category.url, article.category)|safe) }}
 
-      {% if 'post_stats' in PLUGINS %}
-        &#8226; {{ article.stats['read_mins'] }} min read
+      {% if PLUGINS and 'post_stats' in PLUGINS %}
+        &#8226; {{ _('%(minutes)s min read', minutes=article.stats['read_mins']) }}
       {% endif %}
     </p>
   </header>
@@ -77,6 +84,29 @@
     <div class="addthis_relatedposts_inline"></div>
   {% endif %}
 
+  {% if article.series %}
+  <div class="related-posts">
+   {% set text = SERIES_TEXT|default('Part %(index)s of the %(name)s series') %}
+    <h4>{{ text|format(index=article.series.index, name=article.series.name) }}</h4>
+    {% if article.series.all_previous %}
+       <h5>Previous articles</h5>
+       <ul>
+       {% for article in article.series.all_previous %}
+           <li><a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a></li>
+       {% endfor %}
+       </ul>
+    {% endif %}
+    {% if article.series.all_next %}
+       <h5>Next articles</h5>
+       <ul>
+       {% for article in article.series.all_next %}
+           <li><a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a></li>
+       {% endfor %}
+       </ul>
+    {% endif %}
+  </div>
+  {% endif %}
+
   {% if GOOGLE_ADSENSE and GOOGLE_ADSENSE.ads.article_bottom %}
     <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
     <ins class="adsbygoogle ads-responsive"
@@ -88,5 +118,6 @@
   {% endif %}
 
   {% include "partial/disqus.html" %}
+  {% include "partial/isso.html" %}
 </article>
 {% endblock %}
